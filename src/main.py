@@ -1,5 +1,6 @@
 from flask import Flask, request
-from utils import json_, get_valid_id, parse_form
+from utils import json_
+from db_tools import get_valid_id, parse_form
 from config import deputados_path, frentes_path
 
 app = Flask('app')
@@ -71,18 +72,18 @@ def read(type_, form):
         return items
     query_keys = KEYS[type_]['read']
     query = parse_form(form, query_keys)
-    # query search with not enough parameters
+    # search with not enough parameters
     if not query:
         raise Exception(
             f'Modo de leitura com parâmetros inválidos.<br>Informe um ou mais dos parâmetros: \"{", ".join(query_keys)}\"')
-    # query by ID
+    # search by ID
     if 'id' in query:
         id_ = query['id']
         item = [x for x in items if x['id'] == id_]
         if not item:
             return f'Item com ID \"{id_}\" não encontrado'
         return item[0]
-    # query by parameters
+    # search by parameters
     return [item for item in items if any(
         [True for k, v in query.items() if item[k] == v])]
 
