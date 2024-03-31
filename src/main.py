@@ -2,6 +2,7 @@ from flask import Flask, request
 from utils import json_, normalize_name
 from db_tools import get_valid_id, parse_form
 from config import deputados_path, frentes_path
+import traceback
 
 app = Flask('app')
 
@@ -19,37 +20,30 @@ KEYS = {
 }
 
 
-@app.post('/deputados')
-def create_deputado():
+@app.route('/deputados', methods=['POST', 'GET'])
+def deputados():
     try:
-        return write('deputados', request.form)
+        match request.method:
+            case 'POST':
+                return write('deputados', request.form)
+            case 'GET':
+                return read('deputados', request.form)
+            case _:
+                return 'Invalid method'
     except Exception as e:
+        print(traceback.format_exc())
         return f'ERRO: {e}'
 
 
-@app.get('/deputados')
-def get_deputados():
-    try:
-        return read('deputados', request.form)
-    except Exception as e:
-        print(e)
-        return f'ERRO: {e}'
-
-
-@app.post('/frentes')
-def create_frente():
-    try:
-        return write('frentes', request.form)
-    except Exception as e:
-        return f'ERRO: {e}'
-
-
-@app.get('/frentes')
-def get_frentes():
-    try:
-        return read('frentes', request.form)
-    except Exception as e:
-        return f'ERRO: {e}'
+@app.route('/frentes', methods=['POST', 'GET'])
+def frentes():
+    match request.method:
+        case 'POST':
+            return write('frentes', request.form)
+        case 'GET':
+            return read('frentes', request.form)
+        case _:
+            return 'Invalid method'
 
 
 def write(type_, form):
