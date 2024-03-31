@@ -67,9 +67,9 @@ def write(type_, form):
                 'id': id_,
                 'uri': f'https://dadosabertos.camara.leg.br/api/v2/deputados/{id_}',
                 'nome': parsed_form['nome'],
-                'siglaPartido': parsed_form['siglaPartido'],
+                'siglaPartido': parsed_form['siglaPartido'].upper(),
                 'uriPartido': 'https://dadosabertos.camara.leg.br/api/v2/partidos/0000',
-                'siglaUf': parsed_form['siglaUf'],
+                'siglaUf': parsed_form['siglaUf'][:2].upper(),
                 'idLegislatura': 57,
                 'urlFoto': f'https://www.camara.leg.br/internet/deputado/bandep/{id_}.jpg',
                 'email': f'dep.{normalize_name(parsed_form["nome"])}.leg.br'
