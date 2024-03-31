@@ -8,7 +8,7 @@ def json_(path, data=None):
             return json.load(f)
     validate = json.dumps(data)
     with open(path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=2)
+        json.dump(data, f, indent=2, ensure_ascii=False)
 
 
 def normalize(char):
