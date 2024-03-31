@@ -37,13 +37,17 @@ def deputados():
 
 @app.route('/frentes', methods=['POST', 'GET'])
 def frentes():
-    match request.method:
-        case 'POST':
-            return write('frentes', request.form)
-        case 'GET':
-            return read('frentes', request.form)
-        case _:
-            return 'Invalid method'
+    try:
+        match request.method:
+            case 'POST':
+                return write('frentes', request.form)
+            case 'GET':
+                return read('frentes', request.form)
+            case _:
+                return 'Invalid method'
+    except Exception as e:
+        print(traceback.format_exc())
+        return f'ERRO: {e}'
 
 
 def write(type_, form):
