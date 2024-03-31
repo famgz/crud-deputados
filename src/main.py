@@ -4,25 +4,44 @@ from config import deputados_path, frentes_path
 
 app = Flask('app')
 
-deputados_read_keys = ['id', 'nome', 'siglaPartido', 'siglaUf']
-deputados_create_keys = ['nome', 'siglaPartido', 'siglaUf']
+
+keys = {
+    'deputados': {
+        'path': deputados_path,
+        'read': ['id', 'nome', 'siglaPartido', 'siglaUf'],
+        'write': ['nome', 'siglaPartido', 'siglaUf']
+    },
+    'frentes': {
+        'path': frentes_path,
+        'read': [],
+        'write': []
+    },
+}
 
 
 @app.post('/deputados')
 def create_deputado():
-
-    return
+    return write('deputados', request.form)
 
 
 @app.get('/deputados')
 def get_deputados():
+    return read('deputados', request.form)
+
+
+def write(type_):
+    return
+
+
+def read(type_):
     form = request.form
-    query = parse_form(form, deputados_read_keys)
-    deputados = json_(deputados_path)
+    query = parse_form(form, keys[type_]['read'])
+    path = keys[type_]['path']
+    items = json_(path)
     if not query:
-        return deputados
-    return [dep for dep in deputados if any(
-        [True for k, v in query.items() if dep[k] == v])]
+        return items
+    return [item for item in items if any(
+        [True for k, v in query.items() if item[k] == v])]
 
 
 if __name__ == '__main__':
