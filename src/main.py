@@ -103,8 +103,8 @@ def read(type_, form):
             return f'Item com ID \"{id_}\" não encontrado'
         return item[0]
     # search by parameters
-    return [item for item in items if any(
-        [True for k, v in query.items() if item[k] == v])]
+    return [item for item in items if all(
+        [True if item[k] == v else False for k, v in query.items()])]
 
 
 def update(type_, form):
