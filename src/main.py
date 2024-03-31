@@ -24,7 +24,8 @@ def get_deputados():
     deputados = json_(deputados_path)
     if not query:
         return deputados
-    res = [x for x in deputados if ]
+    return [dep for dep in deputados if any(
+        [True for k, v in query.items() if dep[k] == v])]
 
 
 if __name__ == '__main__':
