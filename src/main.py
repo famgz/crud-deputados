@@ -1,5 +1,5 @@
 from flask import Flask, request
-from utils import json_
+from utils import json_, normalize_name
 from db_tools import get_valid_id, parse_form
 from config import deputados_path, frentes_path
 
@@ -55,13 +55,38 @@ def get_frentes():
 def write(type_, form):
     path = KEYS[type_]['path']
     query_keys = KEYS[type_]['write']
-    query = parse_form(form, query_keys)
-    missing_keys = [key for key in query_keys if key not in query]
+    parsed_form = parse_form(form, query_keys)
+    missing_keys = [key for key in query_keys if key not in parsed_form]
     if missing_keys:
         raise Exception(
             f'Modo de escrita com parâmetros inválidos ou ausentes: {", ".join(missing_keys)}')
+    id_ = get_valid_id(path)
+    match type_:
+        case 'deputados':
+            new_entry = {
+                'id': id_,
+                'uri': f'https://dadosabertos.camara.leg.br/api/v2/deputados/{id_}',
+                'nome': parsed_form['nome'],
+                'siglaPartido': parsed_form['siglaPartido'],
+                'uriPartido': 'https://dadosabertos.camara.leg.br/api/v2/partidos/0000',
+                'siglaUf': parsed_form['siglaUf'],
+                'idLegislatura': 57,
+                'urlFoto': f'https://www.camara.leg.br/internet/deputado/bandep/{id_}.jpg',
+                'email': f'dep.{normalize_name(parsed_form["nome"])}.leg.br'
+            }
+        case 'frentes':
+            new_entry = {
+                'id': id_,
+                'uri': f'https://dadosabertos.camara.leg.br/api/v2/frentes/{id_}',
+                'titulo': parse_form['titulo'],
+                'idLegislatura': 57
+            }
+        case _:
+            raise Exception(f'Tipo de database inválido: {type_}')
     items = json_(path)
-    return 'ok'
+    items.append(new_entry)
+    json_(path, items)
+    return new_entry
 
 
 def read(type_, form):
@@ -75,7 +100,7 @@ def read(type_, form):
     # search with not enough parameters
     if not query:
         raise Exception(
-            f'Modo de leitura com parâmetros inválidos.<br>Informe um ou mais dos parâmetros: \"{", ".join(query_keys)}\"')
+            f'Modo de leitura com parâmetros inválidos. Informe um ou mais dos seguintes parâmetros: \"{", ".join(query_keys)}\"')
     # search by ID
     if 'id' in query:
         id_ = query['id']
