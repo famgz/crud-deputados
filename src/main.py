@@ -1,26 +1,23 @@
 from flask import Flask, request
-from utils import json_, get_last_id
+from utils import json_, get_valid_id, parse_form
 from config import deputados_path, frentes_path
 
 app = Flask('app')
 
-
-deputados_query_keys = ['id', 'nome', 'siglaPartido', 'siglaUf']
+deputados_read_keys = ['id', 'nome', 'siglaPartido', 'siglaUf']
+deputados_create_keys = ['nome', 'siglaPartido', 'siglaUf']
 
 
 @app.post('/deputados')
 def create_deputado():
+
     return
 
 
 @app.get('/deputados')
 def get_deputados():
     form = request.form
-    query = {key: form.get(key)
-             for key in deputados_query_keys if form.get(key)
-             }
-    if query.get('id'):
-        query['id'] = int(query['id'])
+    query = parse_form(form, deputados_read_keys)
     deputados = json_(deputados_path)
     if not query:
         return deputados
