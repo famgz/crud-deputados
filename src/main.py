@@ -13,8 +13,8 @@ keys = {
     },
     'frentes': {
         'path': frentes_path,
-        'read': [],
-        'write': []
+        'read': ['id', 'titulo'],
+        'write': ['titulo']
     },
 }
 
@@ -29,17 +29,28 @@ def get_deputados():
     return read('deputados', request.form)
 
 
+@app.post('/frentes')
+def create_frente():
+    return write('frentes', request.form)
+
+
+@app.get('/frentes')
+def get_frentes():
+    return read('frentes', request.form)
+
+
 def write(type_):
     return
 
 
-def read(type_):
-    form = request.form
-    query = parse_form(form, keys[type_]['read'])
+def read(type_, form):
     path = keys[type_]['path']
     items = json_(path)
-    if not query:
+    print(items)
+    if not form:
         return items
+    keys_ = keys[type_]['read']
+    query = parse_form(form, keys_)
     return [item for item in items if any(
         [True for k, v in query.items() if item[k] == v])]
 
