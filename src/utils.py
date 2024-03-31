@@ -2,8 +2,8 @@ import json
 
 
 def parse_form(form, keys):
-    query = {key: form.get(key)
-             for key in keys if form.get(key)
+    query = {key: form.get(key).strip()
+             for key in keys if form.get(key, '').strip()
              }
     if 'id' in query:
         query['id'] = int(query['id'])
