@@ -20,14 +20,17 @@ KEYS = {
 }
 
 
-@app.route('/deputados', methods=['POST', 'GET'])
+@app.route('/deputados', methods=['POST', 'GET', 'DELETE'])
 def deputados():
     try:
+        form = request.form
         match request.method:
             case 'POST':
-                return write('deputados', request.form)
+                return write('deputados', form)
             case 'GET':
-                return read('deputados', request.form)
+                return read('deputados', form)
+            case 'DELETE':
+                return delete_by_id('deputados', form)
             case _:
                 return 'Invalid method'
     except Exception as e:
@@ -35,14 +38,17 @@ def deputados():
         return f'ERRO: {e}'
 
 
-@app.route('/frentes', methods=['POST', 'GET'])
+@app.route('/frentes', methods=['POST', 'GET', 'DELETE'])
 def frentes():
     try:
+        form = request.form
         match request.method:
             case 'POST':
-                return write('frentes', request.form)
+                return write('frentes', form)
             case 'GET':
-                return read('frentes', request.form)
+                return read('frentes', form)
+            case 'DELETE':
+                return delete_by_id('frentes', form)
             case _:
                 return 'Invalid method'
     except Exception as e:
@@ -59,29 +65,41 @@ def write(type_, form):
         raise Exception(
             f'Modo de escrita com parâmetros inválidos ou ausentes: {", ".join(missing_keys)}')
     id_ = get_valid_id(path)
+    items = json_(path)
     match type_:
         case 'deputados':
+            nome = parsed_form['nome']
+            nome_exists = [True for x in items if x['nome'] == nome]
+            if nome_exists:
+                raise Exception(
+                    f'O nome do deputado \"{nome}\" já está cadastrado')
             new_entry = {
                 'id': id_,
                 'uri': f'https://dadosabertos.camara.leg.br/api/v2/deputados/{id_}',
-                'nome': parsed_form['nome'],
+                'nome': nome,
                 'siglaPartido': parsed_form['siglaPartido'].upper(),
                 'uriPartido': 'https://dadosabertos.camara.leg.br/api/v2/partidos/0000',
                 'siglaUf': parsed_form['siglaUf'][:2].upper(),
                 'idLegislatura': 57,
                 'urlFoto': f'https://www.camara.leg.br/internet/deputado/bandep/{id_}.jpg',
-                'email': f'dep.{normalize_name(parsed_form["nome"])}.leg.br'
+                'email': f'dep.{normalize_name(nome)}.leg.br',
+                'id_frente': 000,
             }
         case 'frentes':
+            titulo = parsed_form['titulo']
+            titulo_exists = [True
+                             for x in items if x['titulo'] == titulo]
+            if titulo_exists:
+                raise Exception(
+                    f'O título \"{titulo}\" já está cadastrado')
             new_entry = {
                 'id': id_,
                 'uri': f'https://dadosabertos.camara.leg.br/api/v2/frentes/{id_}',
-                'titulo': parse_form['titulo'],
+                'titulo': titulo,
                 'idLegislatura': 57
             }
         case _:
             raise Exception(f'Tipo de database inválido: {type_}')
-    items = json_(path)
     items.append(new_entry)
     json_(path, items)
     return new_entry
@@ -111,12 +129,18 @@ def read(type_, form):
         [True if item[k] == v else False for k, v in query.items()])]
 
 
-def update(type_, form):
-    return
-
-
-def delete(type_, form):
-    return
+def delete_by_id(type_, form):
+    path = KEYS[type_]['path']
+    items = json_(path)
+    if 'id' not in form:
+        raise Exception('É preciso informar um ID válido para deletar')
+    id_ = int(form['id'])
+    items_ids = [x['id'] for x in items]
+    if id_ not in items_ids:
+        raise Exception(f'ID {id_} não encontrado')
+    items = [x for x in items if x['id'] != id_]
+    json_(path, items)
+    return f'Item com ID \"{id_}\" removido com sucesso de {type_}'
 
 
 if __name__ == '__main__':
